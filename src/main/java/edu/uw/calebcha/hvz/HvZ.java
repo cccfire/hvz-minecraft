@@ -19,7 +19,7 @@ public class HvZ extends JavaPlugin implements Listener {
 	
 	// in theory there should never be more than one HvZ instance at one time.
 	public static HvZ plugin;
-	public static World lobby;
+	public static World mainland;
 	
 	private NPCRegistry registry;
 	
@@ -27,7 +27,7 @@ public class HvZ extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		plugin = this;
-		lobby = getServer().getWorlds().get(0);
+		mainland = getServer().getWorlds().get(0);
 		this.registry = CitizensAPI.createNamedNPCRegistry("hvz", new MemoryNPCDataStore());
 		getServer().getPluginManager().registerEvents(this, this);		
 	}

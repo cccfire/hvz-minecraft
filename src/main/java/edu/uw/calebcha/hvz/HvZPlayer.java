@@ -19,6 +19,7 @@ public abstract class HvZPlayer {
 	public HvZPlayer(Player player, HvZGame game) {
 		this.player = player;
 		this.game = game;
+		this.game.getPlayerRegistry().put(this);
 	}
 
 	/**
@@ -36,4 +37,9 @@ public abstract class HvZPlayer {
 	public HvZGame getGame() {
 		return game;
 	}
+	
+	/**
+	 * Equips the player with starter items.
+	 */
+	public abstract void loadout();
 }

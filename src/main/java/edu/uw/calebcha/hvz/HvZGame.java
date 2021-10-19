@@ -35,7 +35,7 @@ public class HvZGame implements Listener {
 	 * @param playerRegistry existing player registry from previous game
 	 * @param graveyard      existing graveyard from previous game
 	 */
-	public HvZGame(String name, HvZPlayerRegistry playerRegistry, HvZGraveyard graveyard) {
+	public HvZGame(String name, HvZMap map, HvZPlayerRegistry playerRegistry, HvZGraveyard graveyard) {
 		this.creatorName = name;
 		this.playerRegistry = playerRegistry;
 		this.graveyard = graveyard;
@@ -46,8 +46,8 @@ public class HvZGame implements Listener {
 	 * 
 	 * @param name name of the player who created this game
 	 */
-	public HvZGame(String name) {
-		this(name, new HvZPlayerRegistry(), new HvZGraveyard());
+	public HvZGame(String name, HvZMap map) {
+		this(name, map, new HvZPlayerRegistry(), new HvZGraveyard());
 	}
 	
 	/**
@@ -131,7 +131,7 @@ public class HvZGame implements Listener {
 					player.getPlayer().sendTitle(ChatColor.DARK_BLUE + "VICTORY!", ChatColor.DARK_BLUE + "the zombies have won!", 10, 70, 20);
 				} 
 			}
-			player.getPlayer().teleport(HvZ.lobby.getSpawnLocation());
+			player.getPlayer().teleport(HvZ.mainland.getSpawnLocation());
 		}
 	}
 	
@@ -148,6 +148,22 @@ public class HvZGame implements Listener {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Gets this game's player registry.
+	 * @return this HvZ game's player registry
+	 */
+	public HvZPlayerRegistry getPlayerRegistry() {
+		return playerRegistry;
+	}
+	
+	/**
+	 * Gets this game's graveyard.
+	 * @return this HvZ game's graveyard
+	 */
+	public HvZGraveyard getGraveyard() {
+		return graveyard;
 	}
 	
 	/**
