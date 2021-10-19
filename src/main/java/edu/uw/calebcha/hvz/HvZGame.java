@@ -1,16 +1,44 @@
 package edu.uw.calebcha.hvz;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import net.md_5.bungee.api.ChatColor;
+import com.boydti.fawe.util.EditSessionBuilder;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.bukkit.BukkitWorld;
+import com.sk89q.worldedit.extent.clipboard.BlockArrayClipboard;
+import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
+import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
+import com.sk89q.worldedit.function.operation.ForwardExtentCopy;
+import com.sk89q.worldedit.function.operation.Operation;
+import com.sk89q.worldedit.function.operation.Operations;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldedit.session.ClipboardHolder;
+
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.MemoryNPCDataStore;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.NPCRegistry;
+
 
 /**
  * Represents a game of Humans vs Zombies.
@@ -23,7 +51,16 @@ public class HvZGame implements Listener {
 	private HvZGraveyard graveyard;
 	private List<Player> gamers = new ArrayList<>();
 	private String creatorName;	
+	private HvZMap map;
 	private int timeLimit = 12000;
+	private World gameWorld;
+	private World lobbyWorld;
+	private boolean started = false;
+	private BukkitRunnable endTimer = null;
+	private NPC zombieTeam;
+	private NPC humanTeam;
+	private NPCRegistry npcRegistry;
+	
 	
 	/**
 	 * Initializes the HvZGame with existing players.
@@ -37,9 +74,71 @@ public class HvZGame implements Listener {
 	 * @param graveyard      existing graveyard from previous game
 	 */
 	public HvZGame(String name, HvZMap map, HvZPlayerRegistry playerRegistry, HvZGraveyard graveyard) {
+		this.map = map;
 		this.creatorName = name;
 		this.playerRegistry = playerRegistry;
 		this.graveyard = graveyard;
+		UUID uuid = UUID.randomUUID();
+		this.gameWorld = Bukkit.createWorld(new WorldCreator(uuid.toString() + "_hvzgame").generator(new VoidGenerator()));
+		this.lobbyWorld = Bukkit.createWorld(new WorldCreator(uuid.toString() + "_hvzlobby").generator(new VoidGenerator()));
+		this.npcRegistry = CitizensAPI.createNamedNPCRegistry(uuid.toString(), new MemoryNPCDataStore());
+		this.humanTeam = npcRegistry.createNPC(EntityType.PLAYER, "Human Team");
+		this.zombieTeam = npcRegistry.createNPC(EntityType.ZOMBIE, "Zombie Team");
+		/*
+		new BukkitRunnable() {
+			public void run() {
+				Clipboard clipboard;
+				File file = new File(HvZ.BASE_PATH + "zomblobby.schem");
+				ClipboardFormat format = ClipboardFormats.findByFile(file);
+				try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+					
+				    clipboard = reader.read();
+				    
+				    Region region = clipboard.getRegion();
+				    BlockArrayClipboard proxclip = new BlockArrayClipboard(region);
+
+				    try (EditSession editSession = new EditSessionBuilder(new BukkitWorld(lobbyWorld)).build()) {
+
+				    	ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
+				            editSession, region, proxclip, region.getMinimumPoint()
+				        );
+				        // configure here
+				        Operations.complete(forwardExtentCopy);
+				        
+				        Operation operation = new ClipboardHolder(clipboard)
+				                .createPaste(editSession)
+				                .to(BlockVector3.at(0, 50, 0))
+				                .ignoreAirBlocks(true)
+				                    // configure here
+				                .build();
+				        Operations.complete(operation);
+				        
+				        
+				        reader.close();
+				        
+				        
+				        
+				        
+				    }catch(Exception ex) {
+				    	System.out.println(ex);
+				    }
+				  
+				}catch(IOException ex) {
+					System.out.println("error");
+					System.out.println(ex);
+				}
+			}
+		}.runTaskAsynchronously(HvZ.plugin);
+		*/
+		
+		new BukkitRunnable() {
+			public void run() {
+				humanTeam.spawn(new Location(lobbyWorld, 14, 52, -13));
+		        zombieTeam.spawn(new Location(lobbyWorld, 15, 52, 12));
+			}
+		}.runTaskLater(HvZ.plugin, 100);
+		
+		GameRegistry.getInstance().getGames().add(this);
 	}
 	
 	/**
@@ -63,6 +162,14 @@ public class HvZGame implements Listener {
 	}
 	
 	/**
+	 * Get list of players in this game.
+	 * @return list of players of this game
+	 */
+	public List<Player> getPlayers() {
+		return gamers;
+	}
+	
+	/**
 	 * Returns number of players
 	 * @return number of players
 	 */
@@ -74,8 +181,18 @@ public class HvZGame implements Listener {
 	 * Adds player to this HvZ game
 	 * @param player player to be added to game
 	 */
-	public void add(Player player) {
+	public void add(final Player player) {
 		gamers.add(player);
+		if (started) {
+			player.teleport(HvZ.findFirstAir(new Location(gameWorld, this.map.getHumanSpawn().getX(), 50, this.map.getHumanSpawn().getZ())));
+			new HumanPlayer(player, this);
+		}else {
+			new BukkitRunnable() {
+				public void run() {
+					player.teleport(new Location(lobbyWorld, 0, 52, 0));
+				}
+			}.runTaskLater(HvZ.plugin, 40);
+		}
 	}
 	
 	/**
@@ -105,17 +222,76 @@ public class HvZGame implements Listener {
 	 * Starts this game.
 	 */
 	public void start() {
-		new BukkitRunnable() {
+		started = true;
+		
+		endTimer = new BukkitRunnable() {
 			public void run() {
 				endGame();
 			}
-		}.runTaskLater(HvZ.plugin, getTimeLimit());
+		};
+		endTimer.runTaskLater(HvZ.plugin, getTimeLimit());
+		
+		for (Player player : gamers) {
+			if (!playerRegistry.contains(player))
+				new HumanPlayer(player, this);
+		}
+		
+		Clipboard clipboard;
+		File file = new File(this.map.getPath());
+		ClipboardFormat format = ClipboardFormats.findByFile(file);
+		try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
+			
+		    clipboard = reader.read();
+		    
+		    Region region = clipboard.getRegion();
+		    BlockArrayClipboard proxclip = new BlockArrayClipboard(region);
+
+		    try (EditSession editSession = new EditSessionBuilder(new BukkitWorld(gameWorld)).build()) {
+
+		    	ForwardExtentCopy forwardExtentCopy = new ForwardExtentCopy(
+		            editSession, region, proxclip, region.getMinimumPoint()
+		        );
+		        // configure here
+		        Operations.complete(forwardExtentCopy);
+		        
+		        Operation operation = new ClipboardHolder(clipboard)
+		                .createPaste(editSession)
+		                .to(BlockVector3.at(0, 50, 0))
+		                .ignoreAirBlocks(true)
+		                    // configure here
+		                .build();
+		        Operations.complete(operation);
+		        
+		        
+		        reader.close();
+		        
+		        
+		    }catch(Exception ex) {
+		    	System.out.println(ex);
+		    }
+		  
+		}catch(IOException ex) {
+			System.out.println("error");
+			System.out.println(ex);
+		}
+		
+		for (HvZPlayer player : playerRegistry.getPlayermap().values()) {
+			if (player instanceof HumanPlayer) {
+				player.getPlayer().teleport(HvZ.findFirstAir(new Location(gameWorld, this.map.getHumanSpawn().getX(), 50, this.map.getHumanSpawn().getZ())));
+			}else if (player instanceof ZombiePlayer) {
+				player.getPlayer().teleport(HvZ.findFirstAir(new Location(gameWorld, this.map.getZombieSpawn().getX(), 50, this.map.getZombieSpawn().getZ())));
+			}
+		}
 	}
 	
 	/**
 	 * Ends the game.
 	 */
 	public void endGame() {
+		if (endTimer != null) {
+			endTimer.cancel();
+		}
+		
 		boolean humansWon = winnerIsHuman();
 		
 		for (HvZPlayer player : playerRegistry.getPlayermap().values()) {
@@ -135,6 +311,39 @@ public class HvZGame implements Listener {
 			}
 			player.getPlayer().teleport(HvZ.mainland.getSpawnLocation());
 		}
+		
+		cleanup();
+		GameRegistry.getInstance().getGames().remove(this);
+	}
+	
+	/**
+	 * Cleans up files at the end of the game.
+	 */
+	public void cleanup() {
+		Bukkit.unloadWorld(gameWorld, false);
+		Bukkit.unloadWorld(lobbyWorld, false);
+		deleteWorld(lobbyWorld.getWorldFolder());
+		deleteWorld(gameWorld.getWorldFolder());
+	}
+	
+	
+	/**
+	 * Delete world directory
+	 * @param path File object representing folder
+	 * @return true on successful deletion, false otherwise
+	 */
+	public boolean deleteWorld(File path) {
+	      if(path.exists()) {
+	          File files[] = path.listFiles();
+	          for(int i=0; i<files.length; i++) {
+	              if(files[i].isDirectory()) {
+	                  deleteWorld(files[i]);
+	              } else {
+	                  files[i].delete();
+	              }
+	          }
+	      }
+	      return(path.delete());
 	}
 	
 	/**
@@ -144,12 +353,30 @@ public class HvZGame implements Listener {
 	 */
 	public boolean winnerIsHuman() {
 		// TODO: If game is not over throw an exception.
+		return areHumansLeft();
+	}
+	
+	/**
+	 * Gets whether there are humans left.
+	 * @return true if there are humans left, false otherwise
+	 */
+	public boolean areHumansLeft() {
 		for (HvZPlayer player : playerRegistry.getPlayermap().values()) {
 			if (player instanceof HumanPlayer) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Checks for a zombie win.
+	 * This is when there are no humans left.
+	 */
+	public void checkZombieWin() {
+		if (!areHumansLeft()) {
+			endGame();
+		}
 	}
 	
 	/**
@@ -188,5 +415,14 @@ public class HvZGame implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		if(gamers.contains(event.getPlayer()))
 			remove(event.getPlayer());
+		
+		if(gamers.size() == 1 && started == true) {
+			gamers.get(0).teleport(HvZ.mainland.getSpawnLocation());
+			cleanup();
+		}
+			
+		
+		if(gamers.size() == 0)
+			cleanup();
 	}
 }

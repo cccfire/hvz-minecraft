@@ -1,14 +1,13 @@
 package edu.uw.calebcha.hvz;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
-import net.md_5.bungee.api.ChatColor;
 
 /**
  * Represents a human player in Humans vs Zombies.
@@ -38,6 +37,7 @@ public class HumanPlayer extends HvZPlayer implements Listener{
 		this.getGame().getGraveyard().put(this);
 		ZombiePlayer zombiePlayer = new ZombiePlayer(this);
 		zombiePlayer.knock();
+		this.getGame().checkZombieWin();
 	}
 	
 	@EventHandler
