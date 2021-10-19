@@ -1,0 +1,6 @@
+name: HumansVersusZombies
+main: edu.uw.calebcha.hvz
+version: 0.1.0
+depend: [Citizens, Sentinel]
+author: cccfire
+api-version: 1.16.5
