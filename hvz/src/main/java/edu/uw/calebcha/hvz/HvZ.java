@@ -1,5 +1,6 @@
 package edu.uw.calebcha.hvz;
 
+import org.bukkit.World;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -18,15 +19,17 @@ public class HvZ extends JavaPlugin implements Listener {
 	
 	// in theory there should never be more than one HvZ instance at one time.
 	public static HvZ plugin;
+	public static World lobby;
 	
 	private NPCRegistry registry;
-
+	
 	
 	@Override
 	public void onEnable() {
 		plugin = this;
+		lobby = getServer().getWorlds().get(0);
 		this.registry = CitizensAPI.createNamedNPCRegistry("hvz", new MemoryNPCDataStore());
-		getServer().getPluginManager().registerEvents(this, this);
+		getServer().getPluginManager().registerEvents(this, this);		
 	}
 	
 	@EventHandler

@@ -9,6 +9,11 @@
             <id>citizens-repo</id>
             <url>https://repo.citizensnpcs.co</url>
        </repository>
+       <!-- FAWE -->
+<repository>
+  <id>IntellectualSites</id>
+  <url>https://mvn.intellectualsites.com/content/repositories/releases/</url>
+</repository>
   </repositories>
   <dependencies>
         <dependency>
@@ -32,5 +37,12 @@
             <type>jar</type>
         <scope>provided</scope>
     </dependency>
+    <!-- FAWE API -->
+<dependency>
+  <groupId>com.intellectualsites.fawe</groupId>
+  <artifactId>FAWE-Bukkit</artifactId>
+  <version>1.16-687</version>
+  <scope>provided</scope>
+</dependency>
    </dependencies>
 </project>
