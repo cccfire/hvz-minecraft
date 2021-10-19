@@ -30,6 +30,7 @@ public class ZombiePlayer extends HvZPlayer {
 	/**
 	 * Creates ZombiePlayer wrapping a Bukkit Player.
 	 * @param player Bukkit Player to be wrapped
+	 * @param game   the game this player is in
 	 */
 	public ZombiePlayer(Player player, HvZGame game) {
 		super(player, game);

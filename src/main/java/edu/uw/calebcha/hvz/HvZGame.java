@@ -32,6 +32,7 @@ public class HvZGame implements Listener {
 	 * with the same remaining players as humans.
 	 * 
 	 * @param name           name of the player who created this game
+	 * @param map            the map used in this game
 	 * @param playerRegistry existing player registry from previous game
 	 * @param graveyard      existing graveyard from previous game
 	 */
@@ -45,6 +46,7 @@ public class HvZGame implements Listener {
 	 * Initializes the HvZGame
 	 * 
 	 * @param name name of the player who created this game
+	 * @param map            the map used in this game
 	 */
 	public HvZGame(String name, HvZMap map) {
 		this(name, map, new HvZPlayerRegistry(), new HvZGraveyard());

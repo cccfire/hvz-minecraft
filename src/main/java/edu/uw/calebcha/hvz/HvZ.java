@@ -17,6 +17,8 @@ import net.citizensnpcs.api.npc.NPCRegistry;
  */
 public class HvZ extends JavaPlugin implements Listener {
 	
+	public static final String BASE_PATH = "plugins/HvZ/worlds/";
+	
 	// in theory there should never be more than one HvZ instance at one time.
 	public static HvZ plugin;
 	public static World mainland;
@@ -39,4 +41,5 @@ public class HvZ extends JavaPlugin implements Listener {
 	public NPCRegistry getRegistry() {
 		return registry;
 	}
+	
 }

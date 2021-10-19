@@ -15,6 +15,7 @@ public abstract class HvZPlayer {
 	/**
 	 * Creates a Humans vs Zombies player from a Bukkit Player.
 	 * @param player the Bukkit Player joining the game.
+	 * @param game   the game this player is in
 	 */
 	public HvZPlayer(Player player, HvZGame game) {
 		this.player = player;

@@ -20,6 +20,7 @@ public class HumanPlayer extends HvZPlayer implements Listener{
 	/**
 	 * Creates HumanPlayer wrapping a Bukkit Player.
 	 * @param player Bukkit Player to be wrapped
+	 * @param game          the game this player is in
 	 */
 	public HumanPlayer(Player player, HvZGame game) {
 		super(player, game);
