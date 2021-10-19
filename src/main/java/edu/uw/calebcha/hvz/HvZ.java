@@ -31,12 +31,6 @@ public class HvZ extends JavaPlugin implements Listener {
 		this.registry = CitizensAPI.createNamedNPCRegistry("hvz", new MemoryNPCDataStore());
 		getServer().getPluginManager().registerEvents(this, this);		
 	}
-	
-	@EventHandler
-	public void onPlayerInteract(PlayerInteractEvent event) {
-		System.out.println(event.getPlayer().getName() + " clicked on " + 
-	                       event.getClickedBlock().getType().name());
-	}
 
 	/**
 	 * Get this plugin's NPC registry

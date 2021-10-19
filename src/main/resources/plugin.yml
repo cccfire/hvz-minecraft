@@ -1,6 +1,10 @@
 name: HumansVersusZombies
-main: edu.uw.calebcha.hvz
+main: edu.uw.calebcha.hvz.HvZ
 version: 0.1.0
 depend: [Citizens, Sentinel]
 author: cccfire
-api-version: 1.16.5
+api-version: 1.16
+commands:
+   hvz:
+      description: This is a demo command.
+      usage: '/<command>'
